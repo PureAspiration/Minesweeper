@@ -1,4 +1,7 @@
+import math
 import pygame
+import random
+from pprint import pprint
 
 pygame.init()
 width, height = 623, 395
@@ -188,6 +191,18 @@ while True:
                 print("Clicked Play")
                 screen = pygame.display.set_mode((width, height))
 
+                board = [[["", False, False] for a in range(tileHeight)]for b in range(tileWidth)]
+                i = 0
+                while True:
+                    mineX, mineY = random.randint(0, tileWidth - 1), random.randint(0, tileHeight - 1)
+                    print(f"{mineX} {mineY}")
+                    if board[mineX][mineY][0] != "m":
+                        board[mineX][mineY][0] = "m"
+                        i += 1
+                    if i == mines:
+                        break
+                print(board)
+
                 while True:
                     width, height = 10 + 33 * tileWidth + 13, 62 + 33 * tileHeight + 12
                     screen = pygame.display.set_mode((width, height))
@@ -211,8 +226,6 @@ while True:
 
                     pygame.display.update()
 
-                    board = []
-
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             pygame.quit()
@@ -221,6 +234,12 @@ while True:
                         elif event.type == pygame.MOUSEBUTTONDOWN:
                             mouse = pygame.mouse.get_pos()
                             print(f"{mouse[0]} {mouse[1]}")
+
+                            column = math.floor((mouse[0] - 10) / 33) + 1
+                            print(column)
+
+                            row = math.floor((mouse[1] - 62) / 33) + 1
+                            print(row)
 
                         elif event.type == pygame.MOUSEBUTTONUP:
                             mouse = pygame.mouse.get_pos()
