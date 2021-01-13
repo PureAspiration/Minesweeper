@@ -77,6 +77,8 @@ mines = 40
 tileWidth = 16
 tileHeight = 16
 
+clickedButton = pygame.mouse.get_pressed(3)
+
 while True:
     if mines < 1:
         mines = 1
@@ -87,8 +89,14 @@ while True:
     if tileWidth < 8:
         tileWidth = 8
 
+    if tileWidth > 50:
+        tileWidth = 50
+
     if tileHeight < 1:
         tileHeight = 1
+
+    if tileHeight > 50:
+        tileHeight = 50
 
     if tileWidth == 9 and tileHeight == 9 and mines == 10:
         preset = "Beginner"
@@ -138,7 +146,7 @@ while True:
             pygame.quit()
             exit()
 
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONUP:
             mouse = pygame.mouse.get_pos()
             print(f"{mouse[0]} {mouse[1]}")
 
@@ -191,23 +199,28 @@ while True:
                 print("Clicked Play")
                 screen = pygame.display.set_mode((width, height))
 
+                # board[x][y][Mine, Visible, Flagged]
                 board = [[["", False, False] for a in range(tileHeight)]for b in range(tileWidth)]
                 i = 0
+
                 while True:
                     mineX, mineY = random.randint(0, tileWidth - 1), random.randint(0, tileHeight - 1)
                     print(f"{mineX} {mineY}")
-                    if board[mineX][mineY][0] != "m":
-                        board[mineX][mineY][0] = "m"
+                    if board[mineX][mineY][0] != "mine":
+                        board[mineX][mineY][0] = "mine"
                         i += 1
                     if i == mines:
                         break
                 print(board)
+                pprint(board)
 
                 while True:
                     width, height = 10 + 33 * tileWidth + 13, 62 + 33 * tileHeight + 12
                     screen = pygame.display.set_mode((width, height))
 
                     screen.fill(backgroundColor)
+
+                    drawImage("assets/grid.png", "topleft", 10, 62)
 
                     drawImage("assets/background/side-panel-top.png", "midtop", width / 2, 0, 10000, 10)
                     drawImage("assets/background/side-panel-bottom.png", "midtop", width / 2, 50, 10000, 12)
@@ -224,6 +237,15 @@ while True:
 
                     drawImage("assets/tile.png", "midtop", width / 2, 14)
 
+                    for y in range(tileHeight):
+                        for x in range(tileWidth):
+                            if board[x][y][0] == "mine":
+                                drawImage("assets/mine.png", "center", 10 + 17 + x * 33, 62 + 16 + y * 33)
+                            if not board[x][y][1]:
+                                drawImage("assets/tile.png", "topleft", 10 + x * 33, 62 + y * 33)
+                            if board[x][y][2]:
+                                drawImage("assets/flag.png", "center", 10 + 16 + x * 33, 62 + 16 + y * 33)
+
                     pygame.display.update()
 
                     for event in pygame.event.get():
@@ -233,14 +255,35 @@ while True:
 
                         elif event.type == pygame.MOUSEBUTTONDOWN:
                             mouse = pygame.mouse.get_pos()
-                            print(f"{mouse[0]} {mouse[1]}")
+                            print(f"Mouse Clicked: {mouse[0]} {mouse[1]}")
 
-                            column = math.floor((mouse[0] - 10) / 33) + 1
-                            print(column)
+                            clickedButton = pygame.mouse.get_pressed(3)
 
-                            row = math.floor((mouse[1] - 62) / 33) + 1
-                            print(row)
+                            if 10 <= mouse[0] <= (9 + 33 * tileWidth) and 62 <= mouse[1] <= (61 + 33 * tileHeight):
+                                print("Clicked in grid")
+                                column = math.floor((mouse[0] - 10) / 33)
+                                print(column)
+
+                                row = math.floor((mouse[1] - 62) / 33)
+                                print(row)
+
+                                if clickedButton[2]:
+                                    if not board[column][row][2] and not board[column][row][1]:
+                                        board[column][row][2] = True
+                                        print(f"Flagged {column} {row}")
+                                    else:
+                                        board[column][row][2] = False
+                                        print(f"Unflagged {column} {row}")
 
                         elif event.type == pygame.MOUSEBUTTONUP:
                             mouse = pygame.mouse.get_pos()
-                            print(f"{mouse[0]} {mouse[1]}")
+                            print(f"Mouse Released: {mouse[0]} {mouse[1]}")
+
+                            if 10 <= mouse[0] <= (9 + 33 * tileWidth) and 62 <= mouse[1] <= (61 + 33 * tileHeight):
+                                print("Clicked in grid")
+                                column = math.floor((mouse[0] - 10) / 33)
+                                row = math.floor((mouse[1] - 62) / 33)
+
+                                if clickedButton[0]:
+                                    if not board[column][row][1] and not board[column][row][2]:
+                                        board[column][row][1] = True
