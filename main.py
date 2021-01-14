@@ -77,6 +77,8 @@ mines = 40
 tileWidth = 16
 tileHeight = 16
 
+gameover = False
+boardCreated = False
 clickedButton = pygame.mouse.get_pressed(3)
 
 while True:
@@ -200,19 +202,8 @@ while True:
                 screen = pygame.display.set_mode((width, height))
 
                 # board[x][y][Mine, Visible, Flagged]
-                board = [[["", False, False] for a in range(tileHeight)]for b in range(tileWidth)]
+                board = [[["", False, False] for a in range(tileHeight)] for b in range(tileWidth)]
                 i = 0
-
-                while True:
-                    mineX, mineY = random.randint(0, tileWidth - 1), random.randint(0, tileHeight - 1)
-                    print(f"{mineX} {mineY}")
-                    if board[mineX][mineY][0] != "mine":
-                        board[mineX][mineY][0] = "mine"
-                        i += 1
-                    if i == mines:
-                        break
-                print(board)
-                pprint(board)
 
                 while True:
                     width, height = 10 + 33 * tileWidth + 13, 62 + 33 * tileHeight + 12
@@ -239,6 +230,52 @@ while True:
 
                     for y in range(tileHeight):
                         for x in range(tileWidth):
+                            if board[x][y][0] != "mine":
+                                mineNumbers = 0
+                                try:
+                                    if board[x - 1][y - 1][0] == "mine":
+                                        mineNumbers += 1
+                                except IndexError:
+                                    pass
+                                try:
+                                    if board[x][y - 1][0] == "mine":
+                                        mineNumbers += 1
+                                except IndexError:
+                                    pass
+                                try:
+                                    if board[x + 1][y - 1][0] == "mine":
+                                        mineNumbers += 1
+                                except IndexError:
+                                    pass
+                                try:
+                                    if board[x - 1][y][0] == "mine":
+                                        mineNumbers += 1
+                                except IndexError:
+                                    pass
+                                try:
+                                    if board[x + 1][y][0] == "mine":
+                                        mineNumbers += 1
+                                except IndexError:
+                                    pass
+                                try:
+                                    if board[x - 1][y + 1][0] == "mine":
+                                        mineNumbers += 1
+                                except IndexError:
+                                    pass
+                                try:
+                                    if board[x][y + 1][0] == "mine":
+                                        mineNumbers += 1
+                                except IndexError:
+                                    pass
+                                try:
+                                    if board[x + 1][y + 1][0] == "mine":
+                                        mineNumbers += 1
+                                except IndexError:
+                                    pass
+                                if mineNumbers != 0:
+                                    drawImage(f"assets/numbers/{mineNumbers}.png", "center", 10 + 17 + x * 33, 62 + 16 +
+                                              y * 33)
+
                             if board[x][y][0] == "mine":
                                 drawImage("assets/mine.png", "center", 10 + 17 + x * 33, 62 + 16 + y * 33)
                             if not board[x][y][1]:
@@ -247,6 +284,15 @@ while True:
                                 drawImage("assets/flag.png", "center", 10 + 16 + x * 33, 62 + 16 + y * 33)
 
                     pygame.display.update()
+
+                    while gameover:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                exit()
+
+                            elif event.type == pygame.MOUSEBUTTONDOWN:
+                                mouse = pygame.mouse.get_pos()
 
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
@@ -266,6 +312,20 @@ while True:
 
                                 row = math.floor((mouse[1] - 62) / 33)
                                 print(row)
+
+                                if not boardCreated:
+                                    boardCreated = True
+                                    while True:
+                                        mineX, mineY = random.randint(0, tileWidth - 1), random.randint(0,
+                                                                                                        tileHeight - 1)
+                                        print(f"{mineX} {mineY}")
+                                        if board[mineX][mineY][0] != "mine" and not board[column][row][0]:
+                                            board[mineX][mineY][0] = "mine"
+                                            i += 1
+                                        if i == mines:
+                                            break
+                                    print(board)
+                                    pprint(board)
 
                                 if clickedButton[2]:
                                     if not board[column][row][2] and not board[column][row][1]:
@@ -287,3 +347,12 @@ while True:
                                 if clickedButton[0]:
                                     if not board[column][row][1] and not board[column][row][2]:
                                         board[column][row][1] = True
+
+                                    if board[column][row][0] == "mine" and not board[column][row][2]:
+                                        print("Game Over")
+                                        gameover = True
+
+                                        for y in range(tileHeight):
+                                            for x in range(tileWidth):
+                                                if board[x][y][0] == "mine":
+                                                    board[x][y][1] = True
